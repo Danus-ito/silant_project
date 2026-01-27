@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+
+{% block title %}Рекламация от {{ complaint.failure_date|date:"d.m.Y" }} | Мой Силант{% endblock %}
+
+{% block page_title %}
+<div class="d-flex justify-content-between align-items-center">
+    <div>
+        Рекламация
+        <span class="badge bg-silant-beige text-silant-blue ms-2">{{ complaint.failure_node.name }}</span>
+    </div>
+    <div>
+        <a href="{% url 'dashboard' %}" class="btn btn-silant-outline">
+            <i class="bi bi-arrow-left me-1"></i>Назад
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card card-silant mb-4">
+            <div class="card-header card-header-silant">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Информация о рекламации</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Дата отказа:</th>
+                                <td>{{ complaint.failure_date|date:"d.m.Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Дата восстановления:</th>
+                                <td>{{ complaint.recovery_date|date:"d.m.Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Время простоя:</th>
+                                <td>
+                                    <span class="badge {% if complaint.downtime > 7 %}bg-danger{% else %}bg-warning{% endif %}">
+                                        {{ complaint.downtime }} дней
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Наработка на момент отказа:</th>
+                                <td>{{ complaint.operating_time }} м/час</td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Узел отказа:</th>
+                                <td>
+                                    {{ complaint.failure_node.name }}
+                                    {% if complaint.failure_node.description %}
+                                    <br><small class="text-muted">{{ complaint.failure_node.description }}</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Способ восстановления:</th>
+                                <td>
+                                    {{ complaint.recovery_method.name }}
+                                    {% if complaint.recovery_method.description %}
+                                    <br><small class="text-muted">{{ complaint.recovery_method.description }}</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Машина:</th>
+                                <td>
+                                    <a href="{% url 'machine_detail' complaint.machine.pk %}" class="text-decoration-none">
+                                        {{ complaint.machine.factory_number }}
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Сервисная компания:</th>
+                                <td>{{ complaint.service_company.get_full_name|default:complaint.service_company.username }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Описание отказа -->
+                <div class="mt-4">
+                    <h6 class="border-bottom pb-2">Описание отказа</h6>
+                    <div class="bg-light p-3 rounded">
+                        {{ complaint.failure_description|linebreaks }}
+                    </div>
+                </div>
+                
+                <!-- Используемые запасные части -->
+                <div class="mt-4">
+                    <h6 class="border-bottom pb-2">Используемые запасные части</h6>
+                    <div class="bg-light p-3 rounded">
+                        {{ complaint.spare_parts|linebreaks|default:"Не указаны" }}
+                    </div>
+                </div>
+                
+                <!-- Хронология -->
+                <div class="mt-4">
+                    <h6 class="border-bottom pb-2">Хронология событий</h6>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-silant-red"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Отказ техники</h6>
+                                <p class="mb-0 text-muted">{{ complaint.failure_date|date:"d.m.Y H:i" }}</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-silant-blue"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Начало ремонта</h6>
+                                <p class="mb-0 text-muted">{{ complaint.failure_date|date:"d.m.Y H:i" }}</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Восстановление</h6>
+                                <p class="mb-0 text-muted">{{ complaint.recovery_date|date:"d.m.Y H:i" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Информация о машине -->
+        <div class="card card-silant">
+            <div class="card-header card-header-silant">
+                <h5 class="mb-0"><i class="bi bi-truck me-2"></i>Информация о машине</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Заводской номер:</strong><br>
+                            <a href="{% url 'machine_detail' complaint.machine.pk %}">{{ complaint.machine.factory_number }}</a>
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Модель техники:</strong><br>{{ complaint.machine.tech_model.name }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Клиент:</strong><br>{{ complaint.machine.client.username }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Дата отгрузки:</strong><br>{{ complaint.machine.shipment_date|date:"d.m.Y" }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Сервисная компания:</strong><br>{{ complaint.machine.service_company.username }}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Адрес поставки:</strong><br>{{ complaint.machine.delivery_address|truncatewords:10 }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Боковая панель -->
+    <div class="col-lg-4">
+        <!-- Быстрые действия -->
+        <div class="card card-silant mb-4">
+            <div class="card-header card-header-silant">
+                <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Быстрые действия</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'machine_detail' complaint.machine.pk %}" class="btn btn-silant-outline">
+                        <i class="bi bi-truck me-2"></i>Перейти к машине
+                    </a>
+                    <a href="#" class="btn btn-silant-outline">
+                        <i class="bi bi-printer me-2"></i>Распечатать акт рекламации
+                    </a>
+                    {% if user.groups.filter.name='менеджер' or user.groups.filter.name='сервисная_компания' %}
+                    <a href="/admin/myapp/complaint/{{ complaint.id }}/change/" class="btn btn-silant-primary" target="_blank">
+                        <i class="bi bi-pencil me-2"></i>Редактировать в админке
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Статистика -->
+        <div class="card card-silant mb-4">
+            <div class="card-header card-header-silant">
+                <h5 class="mb-0"><i class="bi bi-graph-up me-2"></i>Статистика по машине</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">Всего рекламаций для этой машины:</small>
+                    <h4 class="text-silant-blue">{{ complaint.machine.complaint_set.count }}</h4>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">Среднее время простоя:</small>
+                    {% with avg_downtime=complaint.machine.complaint_set.all|dictsort:"downtime" %}
+                        {% if avg_downtime %}
+                        <h4 class="text-silant-red">
+                            {{ complaint.machine.complaint_set.all|dictsort:"downtime"|slice:":1"|first.downtime|default:"-" }} дней
+                        </h4>
+                        {% else %}
+                        <span class="text-muted">Нет данных</span>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div>
+                    <small class="text-muted d-block mb-1">Частота отказов:</small>
+                    <span class="badge {% if complaint.machine.complaint_set.count > 3 %}bg-danger{% else %}bg-warning{% endif %}">
+                        {{ complaint.machine.complaint_set.count }} за всё время
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Контакты -->
+        <div class="card card-silant">
+            <div class="card-header card-header-silant">
+                <h5 class="mb-0"><i class="bi bi-telephone me-2"></i>Контакты</h5>
+            </div>
+            <div class="card-body">
+                <h6>Сервисная компания</h6>
+                <p class="mb-3">
+                    <strong>{{ complaint.service_company.get_full_name|default:complaint.service_company.username }}</strong><br>
+                    Логин: {{ complaint.service_company.username }}<br>
+                    Email: {{ complaint.service_company.email|default:"Не указан" }}
+                </p>
+                
+                <h6>Клиент</h6>
+                <p class="mb-0">
+                    <strong>{{ complaint.machine.client.get_full_name|default:complaint.machine.client.username }}</strong><br>
+                    Логин: {{ complaint.machine.client.username }}<br>
+                    Email: {{ complaint.machine.client.email|default:"Не указан" }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+.timeline-content {
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dee2e6;
+}
+.timeline-item:last-child .timeline-content {
+    border-bottom: none;
+}
+</style>
+{% endblock %}

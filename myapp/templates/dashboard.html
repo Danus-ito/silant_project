@@ -1,0 +1,720 @@
+{% extends "base.html" %}
+
+{% block title %}Панель управления | Силант Сервис{% endblock %}
+
+{% block page_title %}Панель управления техникой{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <button class="btn btn-silant-outline" type="button" data-bs-toggle="collapse" data-bs-target="#machineFilters">
+        <i class="bi bi-funnel me-1"></i>Фильтры машин
+    </button>
+    
+    {% if user.groups.all.0.name == 'менеджер' %}
+    <button class="btn btn-silant-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="bi bi-plus-circle me-1"></i>Добавить
+    </button>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card card-silant stat-card" style="background-color: #163E6C;">
+            <div class="card-body">
+                <i class="bi bi-truck text-white"></i>
+                <div>
+                    <h6 class="card-title text-white mb-1">Машины</h6>
+                    <h2 class="card-text text-white mb-0">{{ machine_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-silant stat-card" style="background-color: #D20A11;">
+            <div class="card-body">
+                <i class="bi bi-wrench text-white"></i>
+                <div>
+                    <h6 class="card-title text-white mb-1">Техническое обслуживание</h6>
+                    <h2 class="card-text text-white mb-0">{{ maintenance_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card card-silant stat-card" style="background-color: #EBE6D6; border-color: #163E6C;">
+            <div class="card-body">
+                <i class="bi bi-exclamation-triangle" style="color: #163E6C;"></i>
+                <div>
+                    <h6 class="card-title text-dark mb-1">Рекламации</h6>
+                    <h2 class="card-text text-dark mb-0">{{ complaint_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Информация о пользователе -->
+<div class="alert alert-info mb-4 silant-stat-card">
+    <i class="bi bi-person-badge me-2"></i>
+    <strong>Вы вошли как:</strong> {{ user.username }} (роль: {{ user_role }})
+</div>
+
+<!-- Табы для таблиц -->
+<ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="machines-tab" data-bs-toggle="tab" data-bs-target="#machines" type="button">
+            <i class="bi bi-truck me-1" style="color: #163E6C;"></i>Машины
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance" type="button">
+            <i class="bi bi-wrench me-1" style="color: #D20A11;"></i>Техническое обслуживание
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="complaints-tab" data-bs-toggle="tab" data-bs-target="#complaints" type="button">
+            <i class="bi bi-exclamation-triangle me-1" style="color: #EBE6D6;"></i>Рекламации
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="dashboardTabsContent">
+    <!-- Вкладка МАШИНЫ -->
+    <div class="tab-pane fade show active" id="machines" role="tabpanel">
+        <!-- Фильтры машин -->
+        <div class="collapse show mb-4" id="machineFilters">
+            <div class="card card-silant">
+                <div class="card-header card-header-silant">
+                    <h6 class="mb-0"><i class="bi bi-funnel me-2"></i>Фильтры для машин</h6>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <!-- Заводской номер -->
+                        <div class="col-md-3">
+                            <label class="form-label">{{ machine_filter_form.factory_number.label }}</label>
+                            {{ machine_filter_form.factory_number }}
+                        </div>
+                        
+                        <!-- Модель техники -->
+                        <div class="col-md-3">
+                            <label class="form-label">{{ machine_filter_form.tech_model.label }}</label>
+                            {{ machine_filter_form.tech_model }}
+                            <small class="text-muted d-block mt-1">Для теста: "Погрузчик Силант-1000"</small>
+                        </div>
+                        
+                        <!-- Модель двигателя -->
+                        <div class="col-md-3">
+                            <label class="form-label">{{ machine_filter_form.engine_model.label }}</label>
+                            {{ machine_filter_form.engine_model }}
+                        </div>
+                        
+                        <!-- Кнопки -->
+                        <div class="col-md-3 d-flex align-items-end">
+                            <div class="d-grid gap-2 w-100">
+                                <button type="submit" class="btn btn-silant-primary">
+                                    <i class="bi bi-check-lg me-1"></i>Применить
+                                </button>
+                                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-lg me-1"></i>Сбросить
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Дополнительные фильтры (скрытые) -->
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+                            <i class="bi bi-chevron-down"></i> Расширенные фильтры
+                        </button>
+                        
+                        <div class="collapse mt-2" id="advancedFilters">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">{{ machine_filter_form.transmission_model.label }}</label>
+                                    {{ machine_filter_form.transmission_model }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">{{ machine_filter_form.client.label }}</label>
+                                    {{ machine_filter_form.client }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">{{ machine_filter_form.service_company.label }}</label>
+                                    {{ machine_filter_form.service_company }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Таблица машин -->
+        <div class="card card-silant">
+            <div class="card-header card-header-silant d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Список машин ({{ machine_count }})</h5>
+                <span class="badge bg-silant-beige text-silant-blue">
+                    Сортировка: {{ current_sort|default:"дата отгрузки" }}
+                </span>
+            </div>
+            <div class="card-body p-0">
+                {% if machines %}
+                <div class="table-responsive">
+                    <table class="table table-silant table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <a href="?sort=machine_factory_number&order={% if current_sort == 'machine_factory_number' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-decoration-none">
+                                        Зав. №
+                                        {% if current_sort == 'machine_factory_number' %}
+                                            <i class="bi bi-arrow-{% if current_order == 'asc' %}up{% else %}down{% endif %} ms-1"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="?sort=machine_shipment_date&order={% if current_sort == 'machine_shipment_date' and current_order == 'asc' %}desc{% else %}asc{% endif %}" 
+                                       class="text-decoration-none">
+                                        Дата отгрузки
+                                        {% if current_sort == 'machine_shipment_date' %}
+                                            <i class="bi bi-arrow-{% if current_order == 'asc' %}up{% else %}down{% endif %} ms-1"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>Модель техники</th>
+                                <th>Клиент</th>
+                                <th>Сервисная компания</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for machine in machines %}
+                            <tr class="clickable-row" data-url="{% url 'machine_detail' machine.pk %}">
+                                <td>{{ machine.factory_number }}</td>
+                                <td>{{ machine.shipment_date|date:"d.m.Y" }}</td>
+                                <td>{{ machine.tech_model.name }}</td>
+                                <td>{{ machine.client.username }}</td>
+                                <td>{{ machine.service_company.username }}</td>
+                                <td>
+                                    <a href="{% url 'machine_detail' machine.pk %}" class="btn btn-sm btn-silant-outline">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Пагинация -->
+                {% if machines.has_other_pages %}
+                <nav class="p-3">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if machines.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ machines.previous_page_number }}&sort={{ current_sort }}&order={{ current_order }}&tab=machines">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in machines.paginator.page_range %}
+                            {% if num > machines.number|add:'-3' and num < machines.number|add:'3' %}
+                                {% if machines.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                                {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}&sort={{ current_sort }}&order={{ current_order }}&tab=machines">{{ num }}</a>
+                                </li>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if machines.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ machines.next_page_number }}&sort={{ current_sort }}&order={{ current_order }}&tab=machines">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center p-5">
+                    <i class="bi bi-truck display-1 text-muted mb-3"></i>
+                    <h5 class="text-silant-blue">Нет доступных машин</h5>
+                    <p class="text-muted">У вас нет прав для просмотра машин или они отсутствуют в системе.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Вкладка ТО -->
+    <div class="tab-pane fade" id="maintenance" role="tabpanel">
+        <!-- Таблица ТО -->
+        <div class="card card-silant">
+            <div class="card-header card-header-silant d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Техническое обслуживание ({{ maintenance_count }})</h5>
+                <span class="badge bg-silant-beige text-silant-blue">
+                    Сортировка: {% if current_sort == 'maintenance_date' %}дата ТО{% else %}по умолчанию{% endif %}
+                </span>
+            </div>
+            <div class="card-body p-0">
+                {% if maintenances %}
+                <div class="table-responsive">
+                    <table class="table table-silant table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <a href="?sort=maintenance_date&order={% if current_sort == 'maintenance_date' and current_order == 'asc' %}desc{% else %}asc{% endif %}&tab=maintenance" 
+                                       class="text-decoration-none">
+                                        Дата ТО
+                                        {% if current_sort == 'maintenance_date' %}
+                                            <i class="bi bi-arrow-{% if current_order == 'asc' %}up{% else %}down{% endif %} ms-1"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>Вид ТО</th>
+                                <th>Машина</th>
+                                <th>Наработка</th>
+                                <th>Сервисная компания</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for maintenance in maintenances %}
+                            <tr class="clickable-row" data-url="{% url 'maintenance_detail' maintenance.pk %}">
+                                <td>{{ maintenance.date|date:"d.m.Y" }}</td>
+                                <td>{{ maintenance.type.name }}</td>
+                                <td>{{ maintenance.machine.factory_number }}</td>
+                                <td>{{ maintenance.operating_time }} м/час</td>
+                                <td>{{ maintenance.service_company.username }}</td>
+                                <td>
+                                    <a href="{% url 'maintenance_detail' maintenance.pk %}" class="btn btn-sm btn-silant-outline">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if maintenances.has_other_pages %}
+                <nav class="p-3">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if maintenances.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ maintenances.previous_page_number }}&tab=maintenance">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">{{ maintenances.number }}</span>
+                        </li>
+                        
+                        {% if maintenances.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ maintenances.next_page_number }}&tab=maintenance">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center p-5">
+                    <i class="bi bi-wrench display-1 text-muted mb-3"></i>
+                    <h5 class="text-silant-blue">Нет данных по ТО</h5>
+                    <p class="text-muted">Для вашей роли нет записей технического обслуживания.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Вкладка РЕКЛАМАЦИИ -->
+    <div class="tab-pane fade" id="complaints" role="tabpanel">
+        <!-- Таблица рекламаций -->
+        <div class="card card-silant">
+            <div class="card-header card-header-silant d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Рекламации ({{ complaint_count }})</h5>
+                <span class="badge bg-silant-beige text-silant-blue">
+                    Сортировка: {% if current_sort == 'complaint_failure_date' %}дата отказа{% else %}по умолчанию{% endif %}
+                </span>
+            </div>
+            <div class="card-body p-0">
+                {% if complaints %}
+                <div class="table-responsive">
+                    <table class="table table-silant table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <a href="?sort=complaint_failure_date&order={% if current_sort == 'complaint_failure_date' and current_order == 'asc' %}desc{% else %}asc{% endif %}&tab=complaints" 
+                                       class="text-decoration-none">
+                                        Дата отказа
+                                        {% if current_sort == 'complaint_failure_date' %}
+                                            <i class="bi bi-arrow-{% if current_order == 'asc' %}up{% else %}down{% endif %} ms-1"></i>
+                                        {% endif %}
+                                    </a>
+                                </th>
+                                <th>Машина</th>
+                                <th>Узел отказа</th>
+                                <th>Способ восстановления</th>
+                                <th>Простой</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for complaint in complaints %}
+                            <tr class="clickable-row" data-url="{% url 'complaint_detail' complaint.pk %}">
+                                <td>{{ complaint.failure_date|date:"d.m.Y" }}</td>
+                                <td>{{ complaint.machine.factory_number }}</td>
+                                <td>{{ complaint.failure_node.name }}</td>
+                                <td>{{ complaint.recovery_method.name }}</td>
+                                <td>{{ complaint.downtime }} дней</td>
+                                <td>
+                                    <a href="{% url 'complaint_detail' complaint.pk %}" class="btn btn-sm btn-silant-outline">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                {% if complaints.has_other_pages %}
+                <nav class="p-3">
+                    <ul class="pagination justify-content-center mb-0">
+                        {% if complaints.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ complaints.previous_page_number }}&tab=complaints">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">{{ complaints.number }}</span>
+                        </li>
+                        
+                        {% if complaints.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ complaints.next_page_number }}&tab=complaints">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center p-5">
+                    <i class="bi bi-exclamation-triangle display-1 text-muted mb-3"></i>
+                    <h5 class="text-silant-blue">Нет рекламаций</h5>
+                    <p class="text-muted">Для вашей роли нет записей рекламаций.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для добавления (заглушка) -->
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header card-header-silant">
+                <h5 class="modal-title">Добавить запись</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Функционал добавления записей будет реализован в следующих версиях.</p>
+                <p>Для добавления данных используйте админ-панель Django.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-silant-outline" data-bs-dismiss="modal">Закрыть</button>
+                <a href="/admin/" class="btn btn-silant-primary" target="_blank">Перейти в админку</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Улучшение адаптивности дашборда */
+    .table-silant td {
+        vertical-align: middle;
+    }
+    
+    .tab-content {
+        background: white;
+        border-radius: 0 0 10px 10px;
+        border: 1px solid rgba(22, 62, 108, 0.1);
+        border-top: none;
+    }
+    
+    .nav-tabs {
+        border-bottom: 3px solid var(--silant-blue);
+    }
+    
+    .nav-tabs .nav-link {
+        color: var(--silant-blue);
+        font-weight: 600;
+        border: 2px solid transparent;
+        margin-bottom: -3px;
+        transition: all 0.3s ease;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        border-color: rgba(22, 62, 108, 0.2);
+    }
+    
+    .nav-tabs .nav-link.active {
+        color: var(--silant-red);
+        background-color: white;
+        border-color: var(--silant-blue) var(--silant-blue) white;
+        border-bottom: 3px solid white;
+    }
+    
+    /* Иконки в статистике */
+    .stat-card .card-body {
+        display: flex;
+        align-items: center;
+        padding: 1.5rem !important;
+        min-height: 120px;
+    }
+    
+    .stat-card .card-body i {
+        font-size: 2.5rem;
+        margin-right: 1.5rem;
+        opacity: 0.9;
+    }
+    
+    /* Адаптивность фильтров */
+    @media (max-width: 992px) {
+        #machineFilters .col-md-3 {
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card .card-body {
+            padding: 1.25rem !important;
+        }
+        
+        .stat-card .card-body i {
+            font-size: 2rem;
+            margin-right: 1rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .stat-card .card-body {
+            flex-direction: column;
+            text-align: center;
+            padding: 1rem !important;
+        }
+        
+        .stat-card .card-body i {
+            margin-right: 0;
+            margin-bottom: 0.75rem;
+        }
+        
+        .page-actions .d-flex {
+            flex-direction: column;
+            gap: 0.75rem !important;
+        }
+        
+        .page-actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .table-silant thead th,
+        .table-silant thead th a {
+            font-size: 0.9rem;
+            padding: 0.75rem 0.5rem;
+        }
+        
+        .table-silant tbody td {
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .card-header-silant h5,
+        .card-header-silant h6 {
+            font-size: 1rem;
+        }
+        
+        .nav-tabs .nav-link {
+            font-size: 0.9rem;
+            padding: 0.6rem 0.5rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .alert-info {
+            font-size: 0.85rem;
+            padding: 0.75rem;
+        }
+        
+        .stat-card .card-body {
+            min-height: 100px;
+        }
+        
+        .stat-card .card-title {
+            font-size: 0.9rem;
+        }
+        
+        .stat-card .card-text {
+            font-size: 1.5rem;
+        }
+        
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        
+        .pagination .page-link {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.85rem;
+        }
+    }
+    
+    @media (max-width: 360px) {
+        .table-silant th,
+        .table-silant td {
+            padding: 0.4rem 0.3rem;
+            font-size: 0.8rem;
+        }
+        
+        .btn-sm {
+            padding: 0.2rem 0.4rem;
+            font-size: 0.75rem;
+        }
+        
+        .nav-tabs .nav-link {
+            padding: 0.5rem 0.3rem;
+            font-size: 0.8rem;
+        }
+        
+        .stat-card .card-body {
+            padding: 0.75rem !important;
+            min-height: 90px;
+        }
+        
+        .stat-card .card-body i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card .card-text {
+            font-size: 1.25rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Сохранение активной вкладки
+    const saveActiveTab = (tabId) => {
+        localStorage.setItem('silant_active_tab', tabId);
+    };
+    
+    const loadActiveTab = () => {
+        const savedTab = localStorage.getItem('silant_active_tab');
+        if (savedTab) {
+            const tab = document.querySelector(`[data-bs-target="${savedTab}"]`);
+            if (tab) {
+                new bootstrap.Tab(tab).show();
+            }
+        }
+    };
+    
+    // Обработчики вкладок
+    document.querySelectorAll('#dashboardTabs button[data-bs-toggle="tab"]').forEach(tab => {
+        tab.addEventListener('click', function() {
+            saveActiveTab(this.getAttribute('data-bs-target'));
+        });
+    });
+    
+    // Загрузка активной вкладки при загрузке страницы
+    loadActiveTab();
+    
+    // Обработка GET параметра tab
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam) {
+        const tabId = '#' + tabParam;
+        const tab = document.querySelector(`#dashboardTabs button[data-bs-target="${tabId}"]`);
+        if (tab) {
+            new bootstrap.Tab(tab).show();
+        }
+    }
+    
+    // Обновление URL при переключении табов
+    document.querySelectorAll('#dashboardTabs button[data-bs-toggle="tab"]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const tabName = this.getAttribute('data-bs-target').replace('#', '');
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabName);
+            window.history.replaceState({}, '', url);
+        });
+    });
+    
+    // Адаптивное поведение фильтров на мобильных
+    if (window.innerWidth < 768) {
+        const filters = document.querySelector('#machineFilters .collapse');
+        if (filters && filters.classList.contains('show')) {
+            // На мобильных по умолчанию скрываем расширенные фильтры
+            const advancedFilters = document.querySelector('#advancedFilters');
+            if (advancedFilters && advancedFilters.classList.contains('show')) {
+                new bootstrap.Collapse(advancedFilters).hide();
+            }
+        }
+    }
+    
+    // Кликабельные строки таблиц
+    document.querySelectorAll('.clickable-row').forEach(row => {
+        row.addEventListener('click', function(e) {
+            // Не срабатывает при клике на ссылки или кнопки
+            if (!e.target.closest('a') && !e.target.closest('button')) {
+                window.location.href = this.dataset.url;
+            }
+        });
+    });
+    
+    // Добавление стрелочек сортировки
+    const currentSort = '{{ current_sort }}';
+    const currentOrder = '{{ current_order }}';
+    
+    if (currentSort && currentOrder) {
+        const sortHeader = document.querySelector(`th a[href*="sort=${currentSort}"]`);
+        if (sortHeader) {
+            const icon = document.createElement('i');
+            icon.className = `bi bi-arrow-${currentOrder === 'asc' ? 'up' : 'down'} ms-1`;
+            sortHeader.appendChild(icon);
+        }
+    }
+});
+</script>
+{% endblock %}

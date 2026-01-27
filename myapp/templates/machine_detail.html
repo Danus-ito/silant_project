@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Машина №{{ machine.factory_number }} | Мой Силант{% endblock %}
+
+{% block page_title %}
+<div class="d-flex justify-content-between align-items-center">
+    <div>
+        Машина №{{ machine.factory_number }}
+        <span class="badge bg-silant-beige text-silant-blue ms-2">{{ machine.tech_model.name }}</span>
+    </div>
+    <div>
+        <a href="{% url 'dashboard' %}" class="btn btn-silant-outline">
+            <i class="bi bi-arrow-left me-1"></i>Назад
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Основная информация -->
+    <div class="col-lg-8">
+        <div class="card card-silant mb-4">
+            <div class="card-header card-header-silant">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Основные характеристики</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Заводской номер:</th>
+                                <td>{{ machine.factory_number }}</td>
+                            </tr>
+                            <tr>
+                                <th>Модель техники:</th>
+                                <td>
+                                    {{ machine.tech_model.name }}
+                                    {% if machine.tech_model.description %}
+                                    <br><small class="text-muted">{{ machine.tech_model.description }}</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Модель двигателя:</th>
+                                <td>
+                                    {{ machine.engine_model.name }}
+                                    <br><small>№ {{ machine.engine_number }}</small>
+                                    {% if machine.engine_model.description %}
+                                    <br><small class="text-muted">{{ machine.engine_model.description }}</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Модель трансмиссии:</th>
+                                <td>
+                                    {{ machine.transmission_model.name }}
+                                    <br><small>№ {{ machine.transmission_number }}</small>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tr>
+                                <th width="40%">Дата отгрузки:</th>
+                                <td>{{ machine.shipment_date|date:"d.m.Y" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Клиент:</th>
+                                <td>{{ machine.client.get_full_name|default:machine.client.username }}</td>
+                            </tr>
+                            <tr>
+                                <th>Сервисная компания:</th>
+                                <td>{{ machine.service_company.get_full_name|default:machine.service_company.username }}</td>
+                            </tr>
+                            <tr>
+                                <th>Договор поставки:</th>
+                                <td>{{ machine.supply_contract }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Дополнительная информация -->
+                <div class="mt-4">
+                    <h6 class="border-bottom pb-2">Дополнительная информация</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Грузополучатель:</strong><br>{{ machine.consignee }}</p>
+                            <p><strong>Адрес поставки:</strong><br>{{ machine.delivery_address|linebreaks }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Комплектация:</strong><br>{{ machine.equipment|linebreaks|default:"Не указана" }}</p>
+                            <p><strong>Модель ведущего моста:</strong><br>
+                                {{ machine.drive_axle_model.name }} (№{{ machine.drive_axle_number }})
+                            </p>
+                            <p><strong>Модель управляемого моста:</strong><br>
+                                {{ machine.steerable_axle_model.name }} (№{{ machine.steerable_axle_number }})
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- История ТО -->
+        <div class="card card-silant mb-4">
+            <div class="card-header card-header-silant">
+                <h5 class="mb-0"><i class="bi bi-wrench me-2"></i>История технического обслуживания</h5>
+            </div>
+            <div class="card-body">
+                {% if maintenances %}
+                <div class="table-responsive">
+                    <table class="table table-silant table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Вид ТО</th>
+                                <th>Наработка</th>
+                                <th>Заказ-наряд</th>
+                                <th>Сервисная компания</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for maintenance in maintenances %}
+                            <tr class="clickable-row" data-url="{% url 'maintenance_detail' maintenance.pk %}">
+                                <td>{{ maintenance.date|date:"d.m.Y" }}</td>
+                                <td>{{ maintenance.type.name }}</td>
+                                <td>{{ maintenance.operating_time }} м/час</td>
+                                <td>№{{ maintenance.work_order_number }} от {{ maintenance.work_order_date|date:"d.m.Y" }}</td>
+                                <td>{{ maintenance.service_company.username }}</td>
+                                <td>
+                                    <a href="{% url 'maintenance_detail' maintenance.pk %}" class="btn btn-sm btn-silant-outline">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-5">
+                    <i class="bi bi-wrench display-1 text-muted mb-3"></i>
+                    <h5>Нет данных по ТО</h5>
+                    <p class="text-muted">Для этой машины ещё не проводилось техническое обслуживание.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- История рекламаций -->
+        <div class="card card-silant">
+            <div class="card-header card-header-silant">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>История рекламаций</h5>
+            </div>
+            <div class="card-body">
+                {% if complaints %}
+                <div class="table-responsive">
+                    <table class="table table-silant table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Дата отказа</th>
+                                <th>Узел отказа</th>
+                                <th>Способ восстановления</th>
+                                <th>Простой</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for complaint in complaints %}
+                            <tr class="clickable-row" data-url="{% url 'complaint_detail' complaint.pk %}">
+                                <td>{{ complaint.failure_date|date:"d.m.Y" }}</td>
+                                <td>{{ complaint.failure_node.name }}</td>
+                                <td>{{ complaint.recovery_method.name }}</td>
+                                <td>{{ complaint.downtime }} дней</td>
+                                <td>
+                                    <a href="{% url 'complaint_detail' complaint.pk %}" class="btn btn-sm btn-silant-outline">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center p-5">
+                    <i class="bi bi-exclamation-triangle display-1 text-muted mb-3"></i>
+                    <h5>Нет рекламаций</h5>
+                    <p class="text-muted">Для этой машины ещё не зарегистрировано рекламаций.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Боковая панель -->
+    <div class="col-lg-4">
+        <!-- Статус машины -->
+        <div class="card card-silant mb-4">
+            <div class="card-header card-header-silant">
+                <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Статус машины</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0">В эксплуатации</h6>
+                        <small class="text-muted">Машина активна</small>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">Последнее ТО</small>
+                    {% if maintenances.first %}
+                    <div class="d-flex justify-content-between">
+                        <span>{{ maintenances.first.date|date:"d.m.Y" }}</span>
+                        <span class="badge bg-silant-beige">{{ maintenances.first.type.name }}</span>
+                    </div>
+                    {% else %}
+                    <span class="text-muted">Нет данных</span>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-3">
+                    <small class="text-muted d-block mb-1">Последняя рекламация</small>
+                    {% if complaints.first %}
+                    <div class="d-flex justify-content-between">
+                        <span>{{ complaints.first.failure_date|date:"d.m.Y" }}</span>
+                        <span class="badge bg-silant-beige">{{ complaints.first.failure_node.name }}</span>
+                    </div>
+                    {% else %}
+                    <span class="text-muted">Нет рекламаций</span>
+                    {% endif %}
+                </div>
+                
+                <hr>
+                
+                <div class="small text-muted">
+                    <i class="bi bi-clock-history me-1"></i>
+                    Информация обновлена: {% now "d.m.Y H:i" %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Контакты -->
+        <div class="card card-silant">
+            <div class="card-header card-header-silant">
+                <h5 class="mb-0"><i class="bi bi-telephone me-2"></i>Контакты</h5>
+            </div>
+            <div class="card-body">
+                <h6>Клиент</h6>
+                <p class="mb-3">
+                    <strong>{{ machine.client.get_full_name|default:machine.client.username }}</strong><br>
+                    Логин: {{ machine.client.username }}<br>
+                    Email: {{ machine.client.email|default:"Не указан" }}
+                </p>
+                
+                <h6>Сервисная компания</h6>
+                <p class="mb-0">
+                    <strong>{{ machine.service_company.get_full_name|default:machine.service_company.username }}</strong><br>
+                    Логин: {{ machine.service_company.username }}<br>
+                    Email: {{ machine.service_company.email|default:"Не указан" }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальные окна для добавления -->
+<div class="modal fade" id="addMaintenanceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header card-header-silant">
+                <h5 class="modal-title">Добавить ТО для машины №{{ machine.factory_number }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Функционал добавления ТО через интерфейс будет реализован в следующих версиях.</p>
+                <p>Для добавления ТО используйте админ-панель Django:</p>
+                <ol>
+                    <li>Перейдите в админ-панель</li>
+                    <li>Выберите "Техническое обслуживание"</li>
+                    <li>Нажмите "Добавить"</li>
+                    <li>Выберите эту машину в поле "Машина"</li>
+                </ol>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-silant-outline" data-bs-dismiss="modal">Закрыть</button>
+                <a href="/admin/myapp/maintenance/add/?machine={{ machine.id }}" class="btn btn-silant-primary" target="_blank">
+                    Добавить ТО в админке
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addComplaintModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header card-header-silant">
+                <h5 class="modal-title">Добавить рекламацию для машины №{{ machine.factory_number }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Функционал добавления рекламаций через интерфейс будет реализован в следующих версиях.</p>
+                <p>Для добавления рекламации используйте админ-панель Django:</p>
+                <ol>
+                    <li>Перейдите в админ-панель</li>
+                    <li>Выберите "Рекламации"</li>
+                    <li>Нажмите "Добавить"</li>
+                    <li>Выберите эту машину в поле "Машина"</li>
+                </ol>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-silant-outline" data-bs-dismiss="modal">Закрыть</button>
+                <a href="/admin/myapp/complaint/add/?machine={{ machine.id }}" class="btn btn-silant-primary" target="_blank">
+                    Добавить рекламацию в админке
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

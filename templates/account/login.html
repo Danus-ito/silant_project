@@ -1,0 +1,182 @@
+<!-- templates/account/login.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход | Мой Силант</title>
+    <style>
+        :root {
+            --silant-blue: #163E6C;
+            --silant-red: #D20A11;
+            --silant-beige: #EBE6D6;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: var(--silant-beige);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+        
+        .login-box {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .login-header {
+            background-color: var(--silant-blue);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .login-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .login-header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .login-body {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--silant-blue);
+            box-shadow: 0 0 0 2px rgba(22, 62, 108, 0.2);
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--silant-red);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-login:hover {
+            background-color: #b3090e;
+        }
+        
+        .error-message {
+            background-color: #ffe6e6;
+            color: var(--silant-red);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .remember-me {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .remember-me input {
+            margin-right: 10px;
+        }
+        
+        .footer-links {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .footer-links a {
+            color: var(--silant-blue);
+            text-decoration: none;
+        }
+        
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h1>Мой Силант</h1>
+                <p>Электронная сервисная книжка</p>
+            </div>
+            
+            <div class="login-body">
+                {% if form.errors %}
+                <div class="error-message">
+                    Неправильное имя пользователя или пароль.
+                </div>
+                {% endif %}
+                
+                <form method="POST" action="{% url 'account_login' %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="id_login">Имя пользователя</label>
+                        <input type="text" name="login" id="id_login" required autofocus>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="id_password">Пароль</label>
+                        <input type="password" name="password" id="id_password" required>
+                    </div>
+                    
+                    <div class="remember-me">
+                        <input type="checkbox" name="remember" id="id_remember">
+                        <label for="id_remember">Запомнить меня</label>
+                    </div>
+                    
+                    <button type="submit" class="btn-login">Войти</button>
+                </form>
+                
+                <div class="footer-links">
+                    <a href="{% url 'welcome' %}">Вернуться на главную</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

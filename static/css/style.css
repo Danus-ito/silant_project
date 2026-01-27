@@ -1,0 +1,148 @@
+/* Дополнительные стили для Silant */
+
+/* Анимации */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Ховер-эффекты */
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Бейджи */
+.badge-pill {
+    border-radius: 10rem;
+    padding: 0.35em 0.65em;
+}
+
+/* Карточки с иконками */
+.card-icon {
+    font-size: 2.5rem;
+    opacity: 0.9;
+}
+
+/* Таблицы с зебрами */
+.table-striped-silant tbody tr:nth-of-type(odd) {
+    background-color: rgba(235, 230, 214, 0.3);
+}
+
+/* Кнопки с иконками */
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+}
+
+/* Загрузка */
+.loading-spinner {
+    width: 3rem;
+    height: 3rem;
+    border-width: 0.25em;
+}
+
+/* Адаптивные изображения */
+.img-fluid-silant {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* Утилитарные классы */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.text-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Сетка карточек */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Медиа-запросы для мобильных */
+@media (max-width: 576px) {
+    .card-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .table-responsive {
+        font-size: 0.85rem;
+    }
+    
+    .btn-group {
+        flex-wrap: wrap;
+    }
+}
+
+/* Стили для форм */
+.form-control-silant {
+    border-color: #163E6C;
+}
+
+.form-control-silant:focus {
+    border-color: #163E6C;
+    box-shadow: 0 0 0 0.25rem rgba(22, 62, 108, 0.25);
+}
+
+/* Алерты */
+.alert-silant {
+    border-left: 4px solid #163E6C;
+}
+
+.alert-silant-warning {
+    border-left-color: #D20A11;
+    background-color: rgba(210, 10, 17, 0.1);
+}
+
+/* Навигационные табы */
+.nav-tabs-silant .nav-link {
+    color: #163E6C;
+    border-bottom: 2px solid transparent;
+}
+
+.nav-tabs-silant .nav-link.active {
+    color: #D20A11;
+    border-bottom-color: #D20A11;
+    font-weight: 600;
+}
+
+/* Модальные окна */
+.modal-silant .modal-header {
+    background-color: #163E6C;
+    color: white;
+}
+
+.modal-silant .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+/* Пагинация */
+.pagination-silant .page-link {
+    color: #163E6C;
+}
+
+.pagination-silant .page-item.active .page-link {
+    background-color: #163E6C;
+    border-color: #163E6C;
+    color: white;
+}

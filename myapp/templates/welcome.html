@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Мой Силант | Сервисная книжка для погрузчиков{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Заголовок -->
+        <div class="text-center mb-5">
+            <div class="mb-4">
+                <i class="bi bi-tools display-1 text-silant-blue"></i>
+                <h1 class="display-5 fw-bold mt-3 text-silant-blue">МОЙ СИЛАНТ</h1>
+            </div>
+            <p class="lead mb-4">
+                Сервис для отслеживания состояния техники, истории обслуживания и ремонтов погрузчиков Чебоксарского завода силовых агрегатов.
+            </p>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                Для получения информации о технике введите заводской номер в поле ниже.
+            </div>
+        </div>
+
+        <!-- Форма поиска -->
+        <div class="card card-silant mb-5">
+            <div class="card-header card-header-silant">
+                <h4 class="mb-0">
+                    <i class="bi bi-search me-2"></i>Поиск информации о машине
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="get" class="row g-3">
+                    <div class="col-md-8">
+                        <label for="factory_number" class="form-label fw-semibold">
+                            Заводской номер машины
+                        </label>
+                        <input type="text" 
+                               class="form-control form-control-lg" 
+                               id="factory_number" 
+                               name="factory_number"
+                               placeholder="Введите заводской номер" 
+                               required
+                               value="{{ request.GET.factory_number|default:'' }}">
+                        <div class="form-text">
+                            Укажите уникальный номер техники, указанный в документах
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100 py-3" style="background-color: #163E6C; border-color: #163E6C;">
+                            <i class="bi bi-search me-2"></i>Найти технику
+                        </button>
+                    </div>
+                </form>
+
+                {% if error %}
+                <div class="alert alert-danger mt-4">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Ошибка:</strong> {{ error }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Результаты поиска (если есть) -->
+        {% if machine %}
+        <div class="card card-silant mb-5">
+            <div class="card-header card-header-silant d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="bi bi-truck me-2"></i>Данные о технике
+                </h4>
+                <span class="badge" style="background-color: #EBE6D6; color: #163E6C;">
+                    Зав. № {{ machine.factory_number }}
+                </span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th width="30%">Характеристика</th>
+                                <th>Значение</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">1. Заводской номер машины</td>
+                                <td>{{ machine.factory_number }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">2. Модель техники</td>
+                                <td>
+                                    {% if machine.tech_model.name %}
+                                        {{ machine.tech_model.name }}
+                                    {% else %}
+                                        {{ machine.tech_model }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">3. Модель двигателя</td>
+                                <td>
+                                    {% if machine.engine_model.name %}
+                                        {{ machine.engine_model.name }}
+                                    {% else %}
+                                        {{ machine.engine_model }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">4. Заводской номер двигателя</td>
+                                <td>{{ machine.engine_number }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">5. Модель трансмиссии</td>
+                                <td>
+                                    {% if machine.transmission_model.name %}
+                                        {{ machine.transmission_model.name }}
+                                    {% else %}
+                                        {{ machine.transmission_model }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">6. Заводской номер трансмиссии</td>
+                                <td>{{ machine.transmission_number }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">7. Модель ведущего моста</td>
+                                <td>
+                                    {% if machine.drive_axle_model.name %}
+                                        {{ machine.drive_axle_model.name }}
+                                    {% else %}
+                                        {{ machine.drive_axle_model }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">8. Заводской номер ведущего моста</td>
+                                <td>{{ machine.drive_axle_number }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">9. Модель управляемого моста</td>
+                                <td>
+                                    {% if machine.steerable_axle_model.name %}
+                                        {{ machine.steerable_axle_model.name }}
+                                    {% else %}
+                                        {{ machine.steerable_axle_model }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">10. Заводской номер управляемого моста</td>
+                                <td>{{ machine.steerable_axle_number }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer" style="background-color: #EBE6D6;">
+                <div class="text-muted small">
+                    <i class="bi bi-shield-lock me-1"></i>
+                    Для просмотра полных данных требуется авторизация
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Преимущества сервиса -->
+        <div class="row mt-5">
+            <div class="col-md-4 mb-4">
+                <div class="card card-silant h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-clipboard-data display-4 mb-3" style="color: #163E6C;"></i>
+                        <h5 class="card-title fw-bold">Учёт техники</h5>
+                        <p class="card-text">
+                            Полная история каждой машины: от отгрузки с завода до текущего состояния
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card card-silant h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-calendar-check display-4 mb-3" style="color: #D20A11;"></i>
+                        <h5 class="card-title fw-bold">Контроль ТО</h5>
+                        <p class="card-text">
+                            Своевременное оповещение о необходимости технического обслуживания
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card card-silant h-100 text-center">
+                    <div class="card-body">
+                        <i class="bi bi-wrench display-4 mb-3" style="color: #163E6C;"></i>
+                        <h5 class="card-title fw-bold">Ремонты и рекламации</h5>
+                        <p class="card-text">
+                            Отслеживание статуса ремонтов и простоев техники
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Информация для разных ролей -->
+        <div class="card card-silant mt-4">
+            <div class="card-header card-header-silant">
+                <h4 class="mb-0">
+                    <i class="bi bi-people me-2"></i>Возможности для разных пользователей
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-person fs-4 me-2" style="color: #163E6C;"></i>
+                            <h6 class="mb-0 fw-bold">Гость</h6>
+                        </div>
+                        <ul class="small ps-3">
+                            <li>Поиск техники по номеру</li>
+                            <li>Просмотр основных характеристик</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-building fs-4 me-2" style="color: #D20A11;"></i>
+                            <h6 class="mb-0 fw-bold">Клиент</h6>
+                        </div>
+                        <ul class="small ps-3">
+                            <li>Все машины организации</li>
+                            <li>История ТО и рекламаций</li>
+                            <li>Внесение данных о ТО</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-tools fs-4 me-2" style="color: #163E6C;"></i>
+                            <h6 class="mb-0 fw-bold">Сервисная компания</h6>
+                        </div>
+                        <ul class="small ps-3">
+                            <li>Закреплённая техника</li>
+                            <li>Внесение данных о ТО и ремонтах</li>
+                            <li>Управление рекламациями</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="bi bi-gear fs-4 me-2" style="color: #D20A11;"></i>
+                            <h6 class="mb-0 fw-bold">Менеджер</h6>
+                        </div>
+                        <ul class="small ps-3">
+                            <li>Полный доступ ко всем данным</li>
+                            <li>Управление справочниками</li>
+                            <li>Создание пользователей</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Контакты -->
+        <div class="text-center mt-5 pt-4 border-top">
+            <h5 class="fw-bold mb-3">Чебоксарский завод силовых агрегатов</h5>
+            <p class="mb-1">
+                <i class="bi bi-telephone me-2"></i>+7 (XXX) XXX-XX-XX
+            </p>
+            <p class="mb-1">
+                <i class="bi bi-envelope me-2"></i>support@silant.ru
+            </p>
+            <p>
+                <i class="bi bi-geo-alt me-2"></i>г. Чебоксары, пр. И. Яковлева, 15
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('factory_number');
+    if (searchInput && !searchInput.value) {
+        searchInput.focus();
+    }
+});
+</script>
+{% endblock %}
